@@ -59,7 +59,8 @@ my.theme <- theme(
     legend.position="right",
     legend.background=element_blank(),
     legend.title=element_blank(),
-    legend.key=element_blank()
+    legend.key=element_blank(),
+	plot.title=element_text(hjust=0.5)
 )
 p <- ggplot(r2)
 p + geom_point(aes(x=x, y=y, color=type)) + 
@@ -68,10 +69,17 @@ p + geom_point(aes(x=x, y=y, color=type)) +
     scale_x_continuous(expand = c(0, 0)) + 
     scale_y_continuous(expand = c(0, 0)) + 
     xlab(expression(1-mer~R^{2})) + ylab(expression(1-mer+shape~R^{2})) + 
+	ggtitle("Comparison of 1-mer and 1-mer+shape models") + 
     my.theme
 
 # Question 7
 path <- "D:/GitHub/BISC577/CTCF/"
 fa.files <- paste0(path, dir(path, pattern="\\_500.fa$"))
+types <- sub("_500.fa", "", basename(fa.files), fixed=TRUE)
 for (i in 1:length(fa.files)) {
+	pred <- getShape(fa.files[i])
+	plotShape(pred$MGW, main=paste(types[i], "MGW"))
+	plotShape(pred$ProT, main=paste(types[i], "ProT"))
+	plotShape(pred$Roll, main=paste(types[i], "Roll"))
+	plotShape(pred$HelT, main=paste(types[i], "HelT"))
 }

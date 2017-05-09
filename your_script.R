@@ -3,6 +3,7 @@ library(caret)
 library(ggplot2)
 library(grid)
 library(Biostrings)
+library(ROCR)
 
 path <- "D:/GitHub/BISC577/gcPBM/"
 fa.files <- paste0(path, dir(path, pattern="\\.txt.fa$"))
@@ -106,6 +107,7 @@ pred <- getShape(paste0(path, "ctcf.fa"))
 # Encode feature vectors
 featureVector1 <- encodeSeqShape(paste0(path, "ctcf.fa"), pred, "1-mer")
 featureVector2 <- encodeSeqShape(paste0(path, "ctcf.fa"), pred, 
+                                 c("1-mer", "1-shape"))
 df.1mer <- data.frame(isBound=exp.data$isBound, featureVector1)
 df.1mer.shape <- data.frame(isBound=exp.data$isBound, featureVector2)
 
@@ -116,3 +118,20 @@ model.1mer <- train(isBound ~ ., data=df.1mer, trControl=trainControl,
                     method="glm", family=binomial, metric="ROC")
 model.1mer.shape <- train(isBound ~ ., data=df.1mer.shape, 
                           trControl=trainControl, method="glm", family=binomial, 
+                          metric="ROC")
+
+# Plot AUROC
+pred.1mer <- prediction(model.1mer$pred$Y, model.1mer$pred$obs)
+perf.1mer <- performance(pred.1mer, "tpr", "fpr")
+auc.1mer <- performance(pred.1mer, "auc")
+auc.1mer <- unlist(slot(auc.1mer, "y.values"))
+plot(perf.1mer) + title("1-mer") + 
+    text(0.5, 0.5, paste("ROC =", signif(auc.1mer, digits=4)))
+
+pred.1mer.shape <- prediction(model.1mer.shape$pred$Y, 
+                                    model.1mer.shape$pred$obs)
+perf.1mer.shape <- performance(pred.1mer.shape, "tpr", "fpr")
+auc.1mer.shape <- performance(pred.1mer.shape, "auc")
+auc.1mer.shape <- unlist(slot(auc.1mer.shape, "y.values"))
+plot(perf.1mer.shape) + title("1-mer+shape") + 
+    text(0.5, 0.5, paste("ROC = ", signif(auc.1mer.shape, digits=4)))

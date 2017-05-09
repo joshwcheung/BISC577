@@ -2,6 +2,7 @@ library(DNAshapeR)
 library(caret)
 library(ggplot2)
 library(grid)
+library(Biostrings)
 
 path <- "D:/GitHub/BISC577/gcPBM/"
 fa.files <- paste0(path, dir(path, pattern="\\.txt.fa$"))
@@ -82,3 +83,19 @@ for (i in 1:length(fa.files)) {
     for (property in (c("MGW", "ProT", "Roll", "HelT")))
         plotShape(pred[[property]], main=paste(bound[i], property))
 }
+
+# Question 8
+# Generate data for the classifcation (assign Y to bound and N to non-bound)
+# bound
+bound.fasta <- readDNAStringSet(paste0(path, "bound_30.fa"))
+sequences <- paste(bound.fasta)
+bound.txt <- data.frame(seq=sequences, isBound="Y")
+
+# non-bound
+nonbound.fasta <- readDNAStringSet(paste0(path, "unbound_30.fa"))
+sequences <- paste(nonbound.fasta)
+nonbound.txt <- data.frame(seq=sequences, isBound="N")
+
+# merge two datasets
+writeXStringSet(c(bound.fasta, nonbound.fasta), paste0(path, "ctcf.fa"))
+exp.data <- rbind(bound.txt, nonbound.txt)

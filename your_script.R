@@ -99,3 +99,20 @@ nonbound.txt <- data.frame(seq=sequences, isBound="N")
 # merge two datasets
 writeXStringSet(c(bound.fasta, nonbound.fasta), paste0(path, "ctcf.fa"))
 exp.data <- rbind(bound.txt, nonbound.txt)
+
+# DNAshapeR prediction
+pred <- getShape(paste0(path, "ctcf.fa"))
+
+# Encode feature vectors
+featureVector1 <- encodeSeqShape(paste0(path, "ctcf.fa"), pred, "1-mer")
+featureVector2 <- encodeSeqShape(paste0(path, "ctcf.fa"), pred, 
+df.1mer <- data.frame(isBound=exp.data$isBound, featureVector1)
+df.1mer.shape <- data.frame(isBound=exp.data$isBound, featureVector2)
+
+# Logistic regression
+trainControl <- trainControl(method="cv", number=10, savePredictions=TRUE, 
+                             classProbs=TRUE)
+model.1mer <- train(isBound ~ ., data=df.1mer, trControl=trainControl, 
+                    method="glm", family=binomial, metric="ROC")
+model.1mer.shape <- train(isBound ~ ., data=df.1mer.shape, 
+                          trControl=trainControl, method="glm", family=binomial, 
